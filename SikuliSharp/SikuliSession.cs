@@ -6,6 +6,7 @@ namespace SikuliSharp
 {
 	public interface ISikuliSession : IDisposable
 	{
+		SikuliSession Screen(int screen = 0);
 		bool Exists(IPattern pattern, float timeoutInSeconds = 0);
 		bool Click(IPattern pattern);
 		bool Click(IPattern pattern, Point offset);
@@ -36,6 +37,7 @@ namespace SikuliSharp
 		private static readonly Regex InvalidTextRegex = new Regex(@"[\r\n\t\x00-\x1F]", RegexOptions.Compiled);
 		private static readonly CultureInfo InvariantCulture = CultureInfo.InvariantCulture;
 		private readonly ISikuliRuntime _runtime;
+		private int screenID = 0;
 
 		public SikuliSession(ISikuliRuntime sikuliRuntime)
 		{
@@ -44,6 +46,11 @@ namespace SikuliSharp
 		}
 
 		//IPattern Commands
+		public SikuliSession Screen(int screen = 0)
+		{
+			screenID = screen;
+			return this;
+		}
 
 		public bool Exists(IPattern pattern, float timeoutInSeconds = 0f)
 		{
@@ -130,13 +137,14 @@ namespace SikuliSharp
 			pattern.Validate();
 
 			var script = string.Format(
-				"print \"SIKULI#: YES\" if {0}({1}{2}) else \"SIKULI#: NO\"",
+				"print \"SIKULI#: YES\" if Screen({0}).{1}({2}{3}) else \"SIKULI#: NO\"",
+				screenID,
 				command,
 				pattern.ToSikuliScript(),
 				ToSukuliFloat(commandParameter)
 				);
 
-			var result = _runtime.Run(script, "SIKULI#: ", commandParameter * 1.5d); // Failsafe
+			var result = _runtime.Run(script, "SIKULI#: ", commandParameter * 1.5d); // Failsafe			
 			return result.Contains("SIKULI#: YES");
 		}
 
@@ -146,7 +154,8 @@ namespace SikuliSharp
 			toPattern.Validate();
 
 			var script = string.Format(
-				"print \"SIKULI#: YES\" if {0}({1},{2}{3}) else \"SIKULI#: NO\"",
+				"print \"SIKULI#: YES\" if Screen({0}).{1}({2},{3}{4}) else \"SIKULI#: NO\"",
+				screenID,
 				command,
 				fromPattern.ToSikuliScript(),
 				toPattern.ToSikuliScript(),
