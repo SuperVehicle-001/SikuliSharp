@@ -64,7 +64,7 @@ namespace SikuliSharp
 		public Sikuli114Version(string apiJar, string jythonJar)
 		{
 			Arguments = string.Format(
-				"-cp \"{0};{1}\" org.python.util.jython",
+				"-Xms64M -Xmx512M -cp \"{0};{1}\" org.python.util.jython",
 				apiJar,
 				jythonJar
 			);
